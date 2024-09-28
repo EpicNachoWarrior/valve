@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valve's Music & Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* General styling */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    h1, h2 {
+      color: #ff4d4d;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      background-color: #1c1c1c;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ff4d4d;
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin: 5px;
+    }
+
+    button:hover {
+      background-color: #ff3333;
+    }
+
+    /* Section styles */
+    .section {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .active {
+      display: block;
+    }
+
+    canvas {
+      background-color: #000;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Valve's Music & Games</h1>
+    <button onclick="showSection('music')">Music Playlist</button>
+    <button onclick="showSection('games')">Games</button>
+
+    <!-- Music Playlist Section -->
+    <div id="musicSection" class="section active">
+      <h2>Create Your Playlist</h2>
+      <form id="playlistForm">
+        <input type="text" id="videoUrl" placeholder="YouTube Video URL" required />
+        <button type="submit">Add to Playlist</button>
+      </form>
+      <ul id="playlist"></ul>
+    </div>
+
+    <!-- Games Section -->
+    <div id="gameSection" class="section">
+      <h2>Select a Game:</h2>
+      <button onclick="startDino()">Play Dino Jump</button>
+      <button onclick="startTetris()">Play Tetris</button>
+      <button onclick="startBreakout()">Play Breakout</button>
+      <button onclick="startPong()">Play Pong</button>
+
+      <!-- Canvas for Games -->
+      <canvas id="gameCanvas" width="600" height="400"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // Show the selected section
+    function showSection(section) {
+      // Hide all sections first
+      document.getElementById('musicSection').style.display = 'none';
+      document.getElementById('gameSection').style.display = 'none';
+
+      // Show the selected section
+      if (section === 'music') {
+        document.getElementById('musicSection').style.display = 'block';
+      } else if (section === 'games') {
+        document.getElementById('gameSection').style.display = 'block';
+      }
+    }
+
+    // Music Playlist Functionality
+    const playlist = [];
+    document.getElementById('playlistForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const videoUrl = document.getElementById('videoUrl').value;
+      if (videoUrl) {
+        playlist.push(videoUrl);
+        updatePlaylist();
+        document.getElementById('videoUrl').value = ''; // Clear input
+      }
+    });
+
+    function updatePlaylist() {
+      const playlistElement = document.getElementById('playlist');
+      playlistElement.innerHTML = '';
+      playlist.forEach((video, index) => {
+        const li = document.createElement('li');
+        li.textContent = video;
+        playlistElement.appendChild(li);
+      });
+    }
+
+    // Global variables for game control
+    let gameInterval;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Simple Dino Jump Game
+    function startDino() {
+      clearInterval(gameInterval);
+      let dinoY = canvas.height - 50;
+      const dinoHeight = 50;
+      const groundHeight = 10;
+      const obstacles = [];
+      let jumpVelocity = 0;
+      let gravity = 0.5;
+      let isJumping = false;
+
+      function drawDinoGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Dino
+        ctx.fillStyle = 'green';
+        ctx.fillRect(50, dinoY, 50, dinoHeight);
+
+        // Gravity
+        if (isJumping || dinoY < canvas.height - dinoHeight - groundHeight) {
+          dinoY += jumpVelocity;
+          jumpVelocity += gravity;
+        }
+
+        // Draw ground
+        ctx.fillStyle = 'brown';
+        ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+
+        // Draw obstacles
+        obstacles.forEach(obstacle => {
+          obstacle.x -= 5;
+          ctx.fillRect(obstacle.x, canvas.height - obstacle.height - groundHeight, 20, obstacle.height);
+
+          // Check collision
+          if (obstacle.x < 100 && obstacle.x + 20 > 50 && dinoY + dinoHeight > canvas.height - obstacle.height - groundHeight) {
+            clearInterval(gameInterval); // Game over
+            alert('Game Over!');
+          }
+        });
+
+        // Add new obstacles
+        if (Math.random() < 0.01) {
+          obstacles.push({ x: canvas.width, height: Math.random() * 50 + 30 });
+        }
+
+        // Remove obstacles that go off-screen
+        obstacles.forEach((obstacle, index) => {
+          if (obstacle.x < -20) obstacles.splice(index, 1);
+        });
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === ' ' && dinoY === canvas.height - dinoHeight - groundHeight) {
+          jumpVelocity = -10; // Jump
+          isJumping = true;
+        }
+      });
+
+      gameInterval = setInterval(drawDinoGame, 1000 / 60);
+    }
+
+    // Simple Tetris Game
+    function startTetris() {
+      clearInterval(gameInterval);
+      // Tetris implementation here (simplified for now)
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'white';
+      ctx.font = '30px Arial';
+      ctx.fillText('Tetris Game Coming Soon!', 100, 200);
+    }
+
+    // Simple Breakout Game
+    function startBreakout() {
+      clearInterval(gameInterval);
+      const paddleWidth = 80;
+      const paddleHeight = 10;
+      let paddleX = (canvas.width - paddleWidth) / 2;
+      let ballX = canvas.width / 2;
+      let ballY = canvas.height - 30;
+      let ballDX = 2;
+      let ballDY = -2;
+      const ballRadius = 10;
+      const brickRowCount = 5;
+      const brickColumnCount = 8;
+      const brickWidth = 75;
+      const brickHeight = 20;
+      const brickPadding = 10;
+      const brickOffsetTop = 30;
+      const brickOffsetLeft = 30;
+      const bricks = [];
+      for (let c = 0; c < brickColumnCount; c++) {
+        bricks[c] = [];
+        for (let r = 0; r < brickRowCount; r++) {
+          bricks[c][r] = { x: 0, y: 0, status: 1 };
+        }
+      }
+
+      function drawBricks() {
+        for (let c = 0; c < brickColumnCount; c++) {
+          for (let r = 0; r < brickRowCount; r++) {
+            if (bricks[c][r].status === 1) {
+              const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+              const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+              bricks[c][r].x = brickX;
+              bricks[c][r].y = brickY;
+              ctx.beginPath();
+              ctx.rect(brickX, brickY, brickWidth, brickHeight);
+              ctx.fillStyle = 'red';
+              ctx.fill();
+              ctx.closePath();
+            }
+          }
+        }
+      }
+
+      function drawBall() {
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+        ctx.fillStyle = 'blue';
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      function drawPaddle() {
+        ctx.beginPath();
+        ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        ctx.fillStyle = 'green';
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBricks();
+        drawBall();
+        drawPaddle();
+
+        // Ball collision with walls
+        if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) {
+          ballDX = -ballDX;
+        }
+
+        if (ballY + ballDY < ballRadius) {
+          ballDY = -ballDY;
+        } else if (ballY + ballDY > canvas.height - ballRadius) {
+          if (ballX > paddleX && ballX < paddleX + paddleWidth) {
+            ballDY = -ballDY;
+          } else {
+            clearInterval(gameInterval);
+            alert('Game Over!');
+          }
+        }
+
+        ballX += ballDX;
+        ballY += ballDY;
+      }
+
+      document.addEventListener('mousemove', function (e) {
+        const relativeX = e.clientX - canvas.offsetLeft;
+        if (relativeX > 0 && relativeX < canvas.width) {
+          paddleX = relativeX - paddleWidth / 2;
+        }
+      });
+
+      gameInterval = setInterval(draw, 1000 / 60);
+    }
+
+    // Simple Pong Game
+    function startPong() {
+      clearInterval(gameInterval);
+      const paddleWidth = 10;
+      const paddleHeight = 80;
+      let paddleY = (canvas.height - paddleHeight) / 2;
+      const ballSize = 10;
+      let ballX = canvas.width / 2;
+      let ballY = canvas.height / 2;
+      let ballDX = 2;
+      let ballDY = 2;
+      let playerY = (canvas.height - paddleHeight) / 2;
+      let aiY = (canvas.height - paddleHeight) / 2;
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw paddles
+        ctx.fillStyle = 'white';
+        ctx.fillRect(20, playerY, paddleWidth, paddleHeight); // Player paddle
+        ctx.fillRect(canvas.width - 30, aiY, paddleWidth, paddleHeight); // AI paddle
+
+        // Draw ball
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+
+        // Ball movement
+        ballX += ballDX;
+        ballY += ballDY;
+
+        // Ball collision with walls
+        if (ballY + ballDY > canvas.height || ballY + ballDY < 0) {
+          ballDY = -ballDY;
+        }
+
+        if (ballX + ballDX < 30) {
+          if (ballY > playerY && ballY < playerY + paddleHeight) {
+            ballDX = -ballDX;
+          } else {
+            clearInterval(gameInterval);
+            alert('Game Over!');
+          }
+        } else if (ballX + ballDX > canvas.width - 30) {
+          ballDX = -ballDX;
+        }
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowUp') {
+          playerY -= 20;
+        } else if (e.key === 'ArrowDown') {
+          playerY += 20;
+        }
+      });
+
+      gameInterval = setInterval(draw, 1000 / 60);
+    }
+  </script>
+</body>
+</html>
