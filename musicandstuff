@@ -1,5 +1,0 @@
-git mv musicandstuff/index.html .
-git mv musicandstuff/style.css .
-git mv musicandstuff/script.js .
-git commit -m "Move files to root directory"
-git push origin main
