@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Music Website</title>
+    <style>
+        /* Basic styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+        }
+        main {
+            margin: 20px;
+        }
+        #playlists {
+            margin-bottom: 20px;
+        }
+        .playlist {
+            background-color: #fff;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        #music-player {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 10px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>My Music Website</h1>
+    </header>
+
+    <main>
+        <section id="playlists">
+            <h2>Playlists</h2>
+            <div class="playlist" id="playlist-1">
+                <h3>My Favorite Songs</h3>
+                <ul>
+                    <!-- Songs will be added here -->
+                </ul>
+                <button onclick="addSong('playlist-1')">Add Song</button>
+            </div>
+        </section>
+
+        <section id="song-list">
+            <h2>All Songs</h2>
+            <input type="text" id="song-name" placeholder="Song Name">
+            <input type="text" id="song-url" placeholder="Song URL">
+            <button onclick="addNewSong()">Add Song</button>
+        </section>
+    </main>
+
+    <footer id="music-player">
+        <p>No song playing</p>
+        <audio id="audio-player" controls></audio>
+    </footer>
+
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css">
+</body>
+</html>

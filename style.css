@@ -1,0 +1,115 @@
+/* Basic reset for consistent styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f7f7f7; /* Light background color */
+    color: #333; /* Dark text */
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #4CAF50; /* Green header */
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+main {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Soft shadow for the main content */
+    border-radius: 10px;
+}
+
+/* Playlist Section Styling */
+#playlists {
+    margin-bottom: 20px;
+}
+
+.playlist {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+.playlist h3 {
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #4CAF50;
+}
+
+.playlist ul {
+    list-style-type: none;
+}
+
+.playlist ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.playlist ul li:last-child {
+    border-bottom: none;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049; /* Darker green when hovered */
+}
+
+/* Song List Section */
+#song-list {
+    margin-bottom: 20px;
+}
+
+#song-list input {
+    padding: 8px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+#song-list button {
+    padding: 8px 12px;
+}
+
+/* Footer Music Player */
+#music-player {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+
+#audio-player {
+    width: 100%;
+}
