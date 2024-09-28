@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valve's Music</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* General styling */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    h1, h2 {
+      color: #ff4d4d;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      background-color: #1c1c1c;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 80%;
+      padding: 10px;
+      border: 2px solid #ff4d4d;
+      border-radius: 5px;
+      background-color: #2c2c2c;
+      color: #ffffff;
+      margin-bottom: 20px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ff4d4d;
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #ff3333;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .link {
+      color: #ff4d4d;
+      cursor: pointer;
+      margin-top: 20px;
+      display: block;
+    }
+
+    /* Playlist video styles */
+    .video-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .video-item {
+      margin: 10px 0;
+    }
+
+    iframe {
+      width: 100%;
+      height: 300px;
+      border-radius: 8px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      iframe {
+        height: 220px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      iframe {
+        height: 180px;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Signup Form -->
+    <div id="signupForm" class="hidden">
+      <h1>Sign Up for Valve's Music</h1>
+      <input type="text" id="signupUsername" placeholder="Choose a Username" />
+      <input type="password" id="signupPassword" placeholder="Choose a Password" />
+      <button onclick="signup()">Sign Up</button>
+      <a class="link" onclick="showLoginForm()">Already have an account? Log in</a>
+    </div>
+
+    <!-- Login Form -->
+    <div id="loginForm">
+      <h1>Login to Valve's Music</h1>
+      <input type="text" id="loginUsername" placeholder="Username" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button onclick="login()">Login</button>
+      <a class="link" onclick="showSignupForm()">Don't have an account? Sign up</a>
+    </div>
+
+    <!-- Playlist Section (Hidden before login) -->
+    <div id="playlistSection" class="hidden">
+      <h1>Valve's Music</h1>
+      <input type="text" id="videoUrl" placeholder="Paste YouTube link" />
+      <button onclick="addVideo()">Add Video</button>
+
+      <h2>Current Playlist</h2>
+      <ul id="playlist" class="video-list"></ul>
+
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    // User credentials will be stored in local storage
+    const users = JSON.parse(localStorage.getItem('users')) || {};
+
+    // Check if user is already logged in
+    window.onload = function() {
+      if (localStorage.getItem('loggedInUser')) {
+        showPlaylistSection();
+      } else {
+        showLoginForm();
+      }
+    };
+
+    // Sign up function
+    function signup() {
+      const username = document.getElementById('signupUsername').value;
+      const password = document.getElementById('signupPassword').value;
+
+      if (username && password) {
+        if (!users[username]) {
+          users[username] = password; // Store the new user in users object
+          localStorage.setItem('users', JSON.stringify(users)); // Save the user credentials to local storage
+          alert('Signup successful! You can now log in.');
+          showLoginForm();
+        } else {
+          alert('Username already exists. Please choose another.');
+        }
+      } else {
+        alert('Please fill in both fields.');
+      }
+    }
+
+    // Login function
+    function login() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      if (users[username] && users[username] === password) {
+        localStorage.setItem('loggedInUser', username); // Save logged-in user in local storage
+        showPlaylistSection();
+      } else {
+        alert('Invalid username or password');
+      }
+    }
+
+    // Logout function
+    function logout() {
+      localStorage.removeItem('loggedInUser'); // Remove the session from local storage
+      showLoginForm();
+    }
+
+    function showSignupForm() {
+      document.getElementById('signupForm').classList.remove('hidden');
+      document.getElementById('loginForm').classList.add('hidden');
+    }
+
+    function showLoginForm() {
+      document.getElementById('loginForm').classList.remove('hidden');
+      document.getElementById('signupForm').classList.add('hidden');
+    }
+
+    function showPlaylistSection() {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('signupForm').classList.add('hidden');
+      document.getElementById('playlistSection').classList.remove('hidden');
+    }
+
+    // Playlist functionality
+    const playlist = [];
+
+    function addVideo() {
+      const videoUrl = document.getElementById('videoUrl').value;
+      const videoId = extractYouTubeVideoId(videoUrl);
+
+      if (videoId) {
+        playlist.push(videoId);
+        renderPlaylist();
+        document.getElementById('videoUrl').value = '';
+      } else {
+        alert('Invalid YouTube URL');
+      }
+    }
+
+    function extractYouTubeVideoId(url) {
+      const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+      const match = url.match(regex);
+      return match ? match[1] : null;
+    }
+
+    function renderPlaylist() {
+      const playlistElement = document.getElementById('playlist');
+      playlistElement.innerHTML = '';
+
+      playlist.forEach((videoId, index) => {
+        playlistElement.innerHTML += `
+          <li class="video-item">
+            <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
+          </li>`;
+      });
+    }
+  </script>
+</body>
+</html>
