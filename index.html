@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valve's Music & Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* General styling */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    h1, h2 {
+      color: #ff4d4d;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      background-color: #1c1c1c;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ff4d4d;
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #ff3333;
+    }
+
+    /* Game section styles */
+    #gameSection {
+      display: none;
+      margin-top: 20px;
+    }
+
+    canvas {
+      background-color: #000;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Valve's Music & Games</h1>
+    <button onclick="toggleGameSection()">Games</button>
+
+    <!-- Game Section -->
+    <div id="gameSection">
+      <h2>Select a Game:</h2>
+      <button onclick="startPong()">Play Pong</button>
+      <button onclick="startFlappyBird()">Play Flappy Bird</button>
+
+      <!-- Canvas for Games -->
+      <canvas id="gameCanvas" width="600" height="400"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // Toggle the games section visibility
+    function toggleGameSection() {
+      const gameSection = document.getElementById('gameSection');
+      gameSection.style.display = gameSection.style.display === 'none' || gameSection.style.display === '' ? 'block' : 'none';
+    }
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Simple Pong Game
+    let pongInterval;
+
+    function startPong() {
+      clearInterval(pongInterval);
+      canvas.width = 600;
+      canvas.height = 400;
+      const paddleWidth = 10, paddleHeight = 100;
+      let playerY = (canvas.height - paddleHeight) / 2, computerY = (canvas.height - paddleHeight) / 2;
+      let ballX = canvas.width / 2, ballY = canvas.height / 2, ballRadius = 10;
+      let ballSpeedX = 5, ballSpeedY = 3;
+
+      function pongGame() {
+        // Move the ball
+        ballX += ballSpeedX;
+        ballY += ballSpeedY;
+
+        // Bounce off top and bottom
+        if (ballY + ballRadius > canvas.height || ballY - ballRadius < 0) {
+          ballSpeedY = -ballSpeedY;
+        }
+
+        // Paddle collision
+        if (ballX - ballRadius < paddleWidth && ballY > playerY && ballY < playerY + paddleHeight) {
+          ballSpeedX = -ballSpeedX;
+        }
+        if (ballX + ballRadius > canvas.width - paddleWidth && ballY > computerY && ballY < computerY + paddleHeight) {
+          ballSpeedX = -ballSpeedX;
+        }
+
+        // Ball out of bounds
+        if (ballX + ballRadius < 0 || ballX - ballRadius > canvas.width) {
+          ballX = canvas.width / 2;
+          ballY = canvas.height / 2;
+        }
+
+        // Computer AI (moves paddle)
+        computerY = ballY - paddleHeight / 2;
+
+        // Clear canvas and draw everything
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw paddles
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, playerY, paddleWidth, paddleHeight);
+        ctx.fillRect(canvas.width - paddleWidth, computerY, paddleWidth, paddleHeight);
+
+        // Draw ball
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      pongInterval = setInterval(pongGame, 1000 / 60);
+    }
+
+    // Simple Flappy Bird Game
+    let flappyInterval;
+
+    function startFlappyBird() {
+      clearInterval(pongInterval); // Stop Pong if active
+      clearInterval(flappyInterval);
+      canvas.width = 600;
+      canvas.height = 400;
+      let birdY = canvas.height / 2;
+      let birdVelocity = 0;
+      const gravity = 0.5, jump = -10;
+      const birdSize = 20;
+      const pipes = [];
+      let pipeGap = 120;
+      let pipeWidth = 40;
+      let frameCount = 0;
+
+      function flappyGame() {
+        // Gravity effect
+        birdVelocity += gravity;
+        birdY += birdVelocity;
+
+        // Game over if bird touches the ground or top
+        if (birdY + birdSize > canvas.height || birdY - birdSize < 0) {
+          resetFlappyBird();
+        }
+
+        // Add pipes
+        frameCount++;
+        if (frameCount % 90 === 0) {
+          let pipeHeight = Math.random() * (canvas.height - pipeGap);
+          pipes.push({ x: canvas.width, topHeight: pipeHeight, bottomHeight: canvas.height - pipeHeight - pipeGap });
+        }
+
+        // Move pipes and check collisions
+        pipes.forEach((pipe, index) => {
+          pipe.x -= 5;
+
+          // Collision detection with pipes
+          if (
+            (birdY - birdSize < pipe.topHeight || birdY + birdSize > canvas.height - pipe.bottomHeight) &&
+            pipe.x < 60 && pipe.x + pipeWidth > 40
+          ) {
+            resetFlappyBird();
+          }
+
+          // Remove pipes that go off screen
+          if (pipe.x + pipeWidth < 0) {
+            pipes.splice(index, 1);
+          }
+        });
+
+        // Clear canvas and draw everything
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw bird
+        ctx.fillStyle = 'yellow';
+        ctx.beginPath();
+        ctx.arc(50, birdY, birdSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw pipes
+        ctx.fillStyle = 'green';
+        pipes.forEach(pipe => {
+          ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+          ctx.fillRect(pipe.x, canvas.height - pipe.bottomHeight, pipeWidth, pipe.bottomHeight);
+        });
+      }
+
+      // Jump function
+      document.addEventListener('keydown', function (e) {
+        if (e.key === ' ') {
+          birdVelocity = jump;
+        }
+      });
+
+      flappyInterval = setInterval(flappyGame, 1000 / 60);
+
+      function resetFlappyBird() {
+        birdY = canvas.height / 2;
+        birdVelocity = 0;
+        pipes.length = 0;
+        frameCount = 0;
+      }
+    }
+  </script>
+</body>
+</html>
