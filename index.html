@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valve's Music & Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* General styling */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    h1, h2 {
+      color: #ff4d4d;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      background-color: #1c1c1c;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ff4d4d;
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin: 5px;
+    }
+
+    button:hover {
+      background-color: #ff3333;
+    }
+
+    /* Section styles */
+    .section {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .active {
+      display: block;
+    }
+
+    canvas {
+      background-color: #000;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Valve's Music & Games</h1>
+    <button onclick="showSection('music')">Music Playlist</button>
+    <button onclick="showSection('games')">Games</button>
+
+    let playlist = []; // Array to store video links
+
+    function addToPlaylist(videoUrl) {
+      playlist.push(videoUrl);
+      renderPlaylist();
+    }
+
+    function renderPlaylist() {
+      const playlistDiv = document.getElementById('playlist');
+      playlistDiv.innerHTML = ''; // Clear existing playlist display
+
+      playlist.forEach((videoUrl) => {
+        const videoId = extractVideoID(videoUrl); // Extract YouTube video ID
+
+        if (videoId) {
+          const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`; // Autoplay and mute
+          const videoFrame = document.createElement('iframe');
+          videoFrame.setAttribute('width', '560');
+          videoFrame.setAttribute('height', '315');
+          videoFrame.setAttribute('src', embedUrl);
+          videoFrame.setAttribute('frameborder', '0');
+          videoFrame.setAttribute('allow', 'autoplay; encrypted-media');
+          videoFrame.setAttribute('allowfullscreen', true);
+          playlistDiv.appendChild(videoFrame);
+        }
+      });
+    }
+
+    // Function to extract the video ID from the YouTube URL
+    function extractVideoID(url) {
+      const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+      const matches = url.match(regex);
+      return matches ? matches[1] : null; // Return the video ID or null
+    }
+
+    // Existing code for the games should remain untouched.
+
+
+    <!-- Games Section -->
+    <div id="gameSection" class="section">
+      <h2>Select a Game:</h2>
+      <button onclick="startDino()">Play Dino Jump</button>
+      <button onclick="startTetris()">Play Tetris</button>
+      <button onclick="startBreakout()">Play Breakout</button>
+      <button onclick="startPong()">Play Pong</button>
+
+      <!-- Canvas for Games -->
+      <canvas id="gameCanvas" width="600" height="400"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // Show the selected section
+    function showSection(section) {
+      // Hide all sections first
+      document.getElementById('musicSection').style.display = 'none';
+      document.getElementById('gameSection').style.display = 'none';
+
+      // Show the selected section
+      if (section === 'music') {
+        document.getElementById('musicSection').style.display = 'block';
+      } else if (section === 'games') {
+        document.getElementById('gameSection').style.display = 'block';
+      }
+    }
+
+    // Music Playlist Functionality
+    const playlist = [];
+    document.getElementById('playlistForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const videoUrl = document.getElementById('videoUrl').value;
+      if (videoUrl) {
+        playlist.push(videoUrl);
+        updatePlaylist();
+        document.getElementById('videoUrl').value = ''; // Clear input
+      }
+    });
+
+    function updatePlaylist() {
+      const playlistElement = document.getElementById('playlist');
+      playlistElement.innerHTML = '';
+      playlist.forEach((video, index) => {
+        const li = document.createElement('li');
+        li.textContent = video;
+        playlistElement.appendChild(li);
+      });
+    }
+
+    // Global variables for game control
+    let gameInterval;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Simple Dino Game
+    function startDino() {
+      clearInterval(gameInterval);
+      const canvas = document.getElementById('dinoCanvas');
+      const ctx = canvas.getContext('2d');
+
+      const dino = {
+        x: 50,
+        y: canvas.height - 50,
+        width: 30,
+        height: 30,
+        gravity: 0.5,
+        jumpHeight: 10,
+        dy: 0,
+        isJumping: false
+      };
+
+      const obstacles = [];
+      let frame = 0;
+      const obstacleFrequency = 120; // Create an obstacle every 120 frames
+
+      function drawDino() {
+        ctx.fillStyle = 'green';
+        ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+      }
+
+      function drawObstacles() {
+        ctx.fillStyle = 'red';
+        for (let i = 0; i < obstacles.length; i++) {
+          ctx.fillRect(obstacles[i].x, canvas.height - obstacles[i].height, obstacles[i].width, obstacles[i].height);
+        }
+      }
+
+      function updateObstacles() {
+        if (frame % obstacleFrequency === 0) {
+          obstacles.push({ x: canvas.width, width: 20, height: Math.random() * 20 + 20 });
+        }
+
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          obstacles[i].x -= 5;
+
+          // Remove obstacles that are off the screen
+          if (obstacles[i].x + obstacles[i].width < 0) {
+            obstacles.splice(i, 1);
+          }
+
+          // Check collision
+          if (
+            dino.x < obstacles[i].x + obstacles[i].width &&
+            dino.x + dino.width > obstacles[i].x &&
+            dino.y + dino.height > canvas.height - obstacles[i].height
+          ) {
+            clearInterval(gameInterval);
+            alert('Game Over!');
+          }
+        }
+      }
+
+      function jump() {
+        if (!dino.isJumping) {
+          dino.dy = -dino.jumpHeight;
+          dino.isJumping = true;
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        dino.y += dino.dy; // Apply gravity
+        dino.dy += dino.gravity;
+
+        // Prevent the dino from falling through the ground
+        if (dino.y >= canvas.height - dino.height) {
+          dino.y = canvas.height - dino.height;
+          dino.dy = 0;
+          dino.isJumping = false;
+        }
+
+        drawDino();
+        drawObstacles();
+        updateObstacles();
+
+        frame++;
+      }
+
+      // Event listener for jumping with the Space Bar
+      document.addEventListener('keydown', function (e) {
+        if (e.code === 'Space') {
+          jump();
+        }
+      });
+
+      gameInterval = setInterval(draw, 1000 / 60);
+    }
+
+    // Simple Tetris Game
+    function startTetris() {
+      clearInterval(gameInterval);
+      // Tetris implementation here (simplified for now)
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'white';
+      ctx.font = '30px Arial';
+      ctx.fillText('Tetris Game Coming Soon.. hopefully', 100, 200);
+    }
+
+    // Simple Breakout Game
+    function startBreakout() {
+      clearInterval(gameInterval);
+      const paddleWidth = 80;
+      const paddleHeight = 10;
+      let paddleX = (canvas.width - paddleWidth) / 2;
+      let ballX = canvas.width / 2;
+      let ballY = canvas.height - 30;
+      let ballDX = 2;
+      let ballDY = -2;
+      const ballRadius = 10;
+      const brickRowCount = 5;
+      const brickColumnCount = 8;
+      const brickWidth = 75;
+      const brickHeight = 20;
+      const brickPadding = 10;
+      const brickOffsetTop = 30;
+      const brickOffsetLeft = 30;
+      const bricks = [];
+
+      // Create the bricks array
+      for (let c = 0; c < brickColumnCount; c++) {
+        bricks[c] = [];
+        for (let r = 0; r < brickRowCount; r++) {
+          bricks[c][r] = { x: 0, y: 0, status: 1 };  // Status 1 means the brick is still visible
+        }
+      }
+
+      // Function to draw the bricks
+      function drawBricks() {
+        for (let c = 0; c < brickColumnCount; c++) {
+          for (let r = 0; r < brickRowCount; r++) {
+            if (bricks[c][r].status === 1) {
+              const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+              const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+              bricks[c][r].x = brickX;
+              bricks[c][r].y = brickY;
+              ctx.beginPath();
+              ctx.rect(brickX, brickY, brickWidth, brickHeight);
+              ctx.fillStyle = 'red';
+              ctx.fill();
+              ctx.closePath();
+            }
+          }
+        }
+      }
+
+      // Function to draw the ball
+      function drawBall() {
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+        ctx.fillStyle = 'blue';
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      // Function to draw the paddle
+      function drawPaddle() {
+        ctx.beginPath();
+        ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        ctx.fillStyle = 'green';
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      // Function to detect collision between ball and bricks
+      function collisionDetection() {
+        for (let c = 0; c < brickColumnCount; c++) {
+          for (let r = 0; r < brickRowCount; r++) {
+            const brick = bricks[c][r];
+            if (brick.status === 1) {
+              if (
+                ballX > brick.x &&
+                ballX < brick.x + brickWidth &&
+                ballY > brick.y &&
+                ballY < brick.y + brickHeight
+              ) {
+                ballDY = -ballDY;
+                brick.status = 0;  // Set brick status to 0 so it disappears
+              }
+            }
+          }
+        }
+      }
+
+      // Main game loop for Breakout
+      function drawBreakoutGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBricks();
+        drawBall();
+        drawPaddle();
+        collisionDetection();
+
+        // Ball collision with walls
+        if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) {
+          ballDX = -ballDX;
+        }
+
+        if (ballY + ballDY < ballRadius) {
+          ballDY = -ballDY;
+        } else if (ballY + ballDY > canvas.height - ballRadius) {
+          if (ballX > paddleX && ballX < paddleX + paddleWidth) {
+            ballDY = -ballDY;
+          } else {
+            clearInterval(gameInterval);  // Game over
+            alert('Game Over!');
+          }
+        }
+
+        // Move the ball
+        ballX += ballDX;
+        ballY += ballDY;
+      }
+
+      // Control paddle movement with the mouse
+      document.addEventListener('mousemove', function (e) {
+        const relativeX = e.clientX - canvas.offsetLeft;
+        if (relativeX > 0 && relativeX < canvas.width) {
+          paddleX = relativeX - paddleWidth / 2;
+        }
+      });
+
+      // Run the game loop
+      gameInterval = setInterval(drawBreakoutGame, 1000 / 60);
+    }
+
+    // Simple Pong Game
+  function startPong() {
+    clearInterval(gameInterval);
+    const paddleWidth = 10;
+    const paddleHeight = 80;
+    let playerY = (canvas.height - paddleHeight) / 2;
+    let aiY = (canvas.height - paddleHeight) / 2;
+    const ballSize = 10;
+    let ballX = canvas.width / 2;
+    let ballY = canvas.height / 2;
+    let ballDX = 2;
+    let ballDY = 2;
+    const paddleSpeed = 5; // AI paddle speed
+
+    // Draw paddles and ball
+    function drawPongGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw player paddle
+      ctx.fillStyle = 'white';
+      ctx.fillRect(20, playerY, paddleWidth, paddleHeight);
+
+      // Draw AI paddle
+      ctx.fillStyle = 'white';
+      ctx.fillRect(canvas.width - 30, aiY, paddleWidth, paddleHeight);
+
+      // Draw ball
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.closePath();
+
+      // Ball movement
+      ballX += ballDX;
+      ballY += ballDY;
+
+      // Ball collision with top and bottom walls
+      if (ballY + ballDY > canvas.height || ballY + ballDY < 0) {
+        ballDY = -ballDY;
+      }
+
+      // Ball collision with player's paddle
+      if (ballX + ballDX < 30 && ballY > playerY && ballY < playerY + paddleHeight) {
+        ballDX = -ballDX;
+      }
+
+      // Ball collision with AI's paddle
+      if (ballX + ballDX > canvas.width - 30 && ballY > aiY && ballY < aiY + paddleHeight) {
+        ballDX = -ballDX;
+      }
+
+      // Ball goes off screen (left or right) - Reset the ball
+      if (ballX + ballDX < 0 || ballX + ballDX > canvas.width) {
+        ballX = canvas.width / 2;
+        ballY = canvas.height / 2;
+        ballDX = -ballDX;
+      }
+
+      // Prevent player's paddle from going off-screen
+      if (playerY < 0) {
+        playerY = 0;
+      } else if (playerY > canvas.height - paddleHeight) {
+        playerY = canvas.height - paddleHeight;
+      }
+
+      // AI paddle movement (simple AI that follows the ball)
+      if (ballY > aiY + paddleHeight / 2) {
+        aiY += paddleSpeed;  // Move AI paddle down
+      } else if (ballY < aiY + paddleHeight / 2) {
+        aiY -= paddleSpeed;  // Move AI paddle up
+      }
+
+      // Prevent AI paddle from going off-screen
+      if (aiY < 0) {
+        aiY = 0;
+      } else if (aiY > canvas.height - paddleHeight) {
+        aiY = canvas.height - paddleHeight;
+      }
+    }
+
+    // Player controls with arrow keys
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowUp') {
+        playerY -= 20;
+      } else if (e.key === 'ArrowDown') {
+        playerY += 20;
+      }
+    });
+
+    // Run the game loop
+    gameInterval = setInterval(drawPongGame, 1000 / 60);
+  }
+  <div id="playlist" class="playlist"></div>
+
+  </script>
+</body>
+</html>
