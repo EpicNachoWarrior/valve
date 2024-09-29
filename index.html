@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valve's Music</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background-color: #ff4d4d;
+      width: 100%;
+      text-align: center;
+      padding: 10px 0;
+      color: #fff;
+      font-size: 24px;
+    }
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      background-color: #1c1c1c;
+      border-radius: 10px;
+      text-align: center;
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ff4d4d;
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    canvas {
+      background-color: #000;
+      margin-top: 20px;
+    }
+    .section {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header id="banner">I am an amateur coder, this website is still a WIP.</header>
+
+  <div class="container">
+    <h1>Valve's Music</h1>
+    <button onclick="showSection('music')">Music Playlist</button>
+    <button onclick="showSection('games')">Games</button>
+
+    <div id="musicSection" class="section active">
+      <h2>Create Your Playlist</h2>
+      <form id="playlistForm">
+        <input type="text" id="videoUrl" placeholder="YouTube Video URL" required />
+        <button type="submit">Add to Playlist</button>
+      </form>
+      <ul id="playlist"></ul>
+    </div>
+
+    <div id="gameSection" class="section">
+      <h2>Select a Game:</h2>
+      <button onclick="startDino()">Dino Jump</button>
+      <button onclick="startPong()">Pong</button>
+      <button onclick="startTetris()">Tetris</button>
+      <button onclick="startSnake()">Snake</button>
+      <button onclick="startMemoryMatch()">Memory Match</button>
+      <canvas id="gameCanvas" width="600" height="400"></canvas>
+    </div>
+  </div>
+
+  <script>
+    function showSection(section) {
+      document.getElementById('musicSection').style.display = 'none';
+      document.getElementById('gameSection').style.display = 'none';
+
+      if (section === 'music') {
+        document.getElementById('musicSection').style.display = 'block';
+      } else if (section === 'games') {
+        document.getElementById('gameSection').style.display = 'block';
+      }
+    }
+
+    // Music Playlist
+    const playlist = [];
+    document.getElementById('playlistForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const videoUrl = document.getElementById('videoUrl').value;
+      if (videoUrl) {
+        playlist.push(videoUrl);
+        updatePlaylist();
+        document.getElementById('videoUrl').value = '';
+      }
+    });
+
+    function updatePlaylist() {
+      const playlistElement = document.getElementById('playlist');
+      playlistElement.innerHTML = '';
+      playlist.forEach(video => {
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube.com/embed/${getYouTubeID(video)}?autoplay=1`;
+        iframe.width = "400";
+        iframe.height = "200";
+        iframe.allow = "autoplay";
+        playlistElement.appendChild(iframe);
+      });
+    }
+
+    function getYouTubeID(url) {
+      const urlParams = new URLSearchParams(new URL(url).search);
+      return urlParams.get('v');
+    }
+
+    // Pong Game
+    function startPong() {
+      clearInterval(gameInterval);
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+
+      const paddleHeight = 80;
+      const paddleWidth = 10;
+      let playerY = (canvas.height - paddleHeight) / 2;
+      let aiY = (canvas.height - paddleHeight) / 2;
+      let ballX = canvas.width / 2;
+      let ballY = canvas.height / 2;
+      let ballDX = 2;
+      let ballDY = 2;
+      const aiSpeed = 4;
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw paddles
+        ctx.fillStyle = '#FFF';
+        ctx.fillRect(20, playerY, paddleWidth, paddleHeight);
+        ctx.fillRect(canvas.width - 30, aiY, paddleWidth, paddleHeight);
+
+        // Draw ball
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+
+        // Ball movement
+        ballX += ballDX;
+        ballY += ballDY;
+
+        // Bounce ball off top and bottom walls
+        if (ballY + ballDY < 0 || ballY + ballDY > canvas.height) {
+          ballDY = -ballDY;
+        }
+
+        // Player paddle collision
+        if (ballX < 30 && ballY > playerY && ballY < playerY + paddleHeight) {
+          ballDX = -ballDX;
+        }
+
+        // AI paddle collision
+        if (ballX > canvas.width - 30 && ballY > aiY && ballY < aiY + paddleHeight) {
+          ballDX = -ballDX;
+        }
+
+        // Ball reset
+        if (ballX + ballDX < 0 || ballX + ballDX > canvas.width) {
+          ballX = canvas.width / 2;
+          ballY = canvas.height / 2;
+          ballDX = -ballDX;
+        }
+
+        // AI paddle movement
+        if (ballY > aiY + paddleHeight / 2) {
+          aiY += aiSpeed;
+        } else if (ballY < aiY + paddleHeight / 2) {
+          aiY -= aiSpeed;
+        }
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp') playerY -= 20;
+        if (e.key === 'ArrowDown') playerY += 20;
+      });
+
+      gameInterval = setInterval(draw, 1000 / 60);
+    }
+
+    // Tetris
+    function startTetris() {
+      // Add Tetris code here (simplified for space)
+      alert('Tetris Coming Soon!');
+    }
+
+    // Snake Game
+    function startSnake() {
+      clearInterval(gameInterval);
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const box = 20;
+      let snake = [{ x: 5 * box, y: 5 * box }];
+      let direction = 'RIGHT';
+      let food = { x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box };
+      let score = 0;
+
+      document.addEventListener('keydown', changeDirection);
+
+      function changeDirection(event) {
+        if (event.key === 'ArrowLeft' && direction !== 'RIGHT') direction = 'LEFT';
+        else if (event.key === 'ArrowUp' && direction !== 'DOWN') direction = 'UP';
+        else if (event.key === 'ArrowRight' && direction !== 'LEFT') direction = 'RIGHT';
+        else if (event.key === 'ArrowDown' && direction !== 'UP') direction = 'DOWN';
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < snake.length; i++) {
+          ctx.fillStyle = (i === 0) ? 'green' : 'white';
+          ctx.fillRect(snake[i].x, snake[i].y, box, box);
+        }
+
+        ctx.fillStyle = 'red';
+        ctx.fillRect(food.x, food.y, box, box);
+
+        let snakeX = snake[0].x;
+        let snakeY = snake
