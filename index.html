@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valve's Music</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* General styling */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    h1, h2 {
+      color: #ff4d4d;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      background-color: #1c1c1c;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ff4d4d;
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin: 5px;
+    }
+
+    button:hover {
+      background-color: #ff3333;
+    }
+
+    /* Section styles */
+    .section {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .active {
+      display: block;
+    }
+
+    canvas {
+      background-color: #000;
+      margin-top: 20px;
+    }
+
+    /* Banner styles */
+    .banner {
+      width: 100%;
+      background-color: #ff4d4d;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+
+    /* Offset container for the banner */
+    .container-with-banner {
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Banner Section -->
+  <div class="banner">
+    <!-- You can edit this text later -->
+  I am an amateur coder, this website is still a WIP.
+  </div>
+
+  <div class="container container-with-banner">
+    <h1>Valve's Music</h1>
+    <button onclick="showSection('music')">Music Playlist</button>
+    <button onclick="showSection('games')">Games</button>
+
+    <!-- Music Playlist Section -->
+    <div id="musicSection" class="section active">
+      <h2>Create Your Playlist</h2>
+      <form id="playlistForm">
+        <input type="text" id="videoUrl" placeholder="YouTube Video URL" required />
+        <button type="submit">Add to Playlist</button>
+      </form>
+      <ul id="playlist"></ul>
+    </div>
+
+    <!-- Games Section -->
+    <div id="gameSection" class="section">
+      <h2>Select a Game:</h2>
+      <button onclick="startDino()">Play Dino Jump</button>
+      <button onclick="startTetris()">Play Tetris</button>
+      <button onclick="startBreakout()">Play Breakout</button>
+      <button onclick="startPong()">Play Pong</button>
+
+      <!-- Canvas for Games -->
+      <canvas id="gameCanvas" width="600" height="400"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // Show the selected section
+    function showSection(section) {
+      // Hide all sections first
+      document.getElementById('musicSection').style.display = 'none';
+      document.getElementById('gameSection').style.display = 'none';
+
+      // Show the selected section
+      if (section === 'music') {
+        document.getElementById('musicSection').style.display = 'block';
+      } else if (section === 'games') {
+        document.getElementById('gameSection').style.display = 'block';
+      }
+    }
+
+    // Music Playlist Functionality
+    const playlist = [];
+    document.getElementById('playlistForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const videoUrl = document.getElementById('videoUrl').value;
+      if (videoUrl) {
+        playlist.push(videoUrl);
+        updatePlaylist();
+        document.getElementById('videoUrl').value = ''; // Clear input
+      }
+    });
+
+    function updatePlaylist() {
+      const playlistElement = document.getElementById('playlist');
+      playlistElement.innerHTML = '';
+      playlist.forEach((video, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<iframe width="560" height="315" src="${video}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+        playlistElement.appendChild(li);
+      });
+    }
+
+    // Global variables for game control
+    let gameInterval;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Simple Dino Game
+    function startDino() {
+      clearInterval(gameInterval);
+      const dinoCanvas = document.createElement('canvas'); // Create a separate canvas for the dino game
+      const ctx = dinoCanvas.getContext('2d');
+      dinoCanvas.width = 600;
+      dinoCanvas.height = 400;
+      document.getElementById('gameCanvas').replaceWith(dinoCanvas); // Replace game canvas with dino canvas
+
+      const dino = {
+        x: 50,
+        y: dinoCanvas.height - 50,
+        width: 30,
+        height: 30,
+        gravity: 0.5,
+        jumpHeight: 10,
+        dy: 0,
+        isJumping: false
+      };
+
+      const obstacles = [];
+      let frame = 0;
+      const obstacleFrequency = 120; // Create an obstacle every 120 frames
+
+      function drawDino() {
+        ctx.fillStyle = 'green';
+        ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+      }
+
+      function drawObstacles() {
+        ctx.fillStyle = 'red';
+        for (let i = 0; i < obstacles.length; i++) {
+          ctx.fillRect(obstacles[i].x, dinoCanvas.height - obstacles[i].height, obstacles[i].width, obstacles[i].height);
+        }
+      }
+
+      function updateObstacles() {
+        if (frame % obstacleFrequency === 0) {
+          obstacles.push({ x: dinoCanvas.width, width: 20, height: Math.random() * 20 + 20 });
+        }
+
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          obstacles[i].x -= 5;
+
+          // Remove obstacles that are off the screen
+          if (obstacles[i].x + obstacles[i].width < 0) {
+            obstacles.splice(i, 1);
+          }
+
+          // Check collision
+          if (
+            dino.x < obstacles[i].x + obstacles[i].width &&
+            dino.x + dino.width > obstacles[i].x &&
+            dino.y + dino.height > dinoCanvas.height - obstacles[i].height
+          ) {
+            clearInterval(gameInterval);
+            alert('Game Over!');
+          }
+        }
+      }
+
+      function jump() {
+        if (!dino.isJumping) {
+          dino.dy = -dino.jumpHeight;
+          dino.isJumping = true;
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, dinoCanvas.width, dinoCanvas.height);
+        dino.y += dino.dy; // Apply gravity
+        dino.dy += dino.gravity;
+
+        // Prevent the dino from falling through the ground
+        if (dino.y >= dinoCanvas.height - dino.height) {
+          dino.y = dinoCanvas.height - dino.height;
+          dino.dy = 0;
+          dino.isJumping = false;
+        }
+
+        drawDino();
+        drawObstacles();
+        updateObstacles();
+
+        frame++;
+      }
+
+      // Event listener for jumping with the Space Bar
+      document.addEventListener('keydown', function (e) {
+        if (e.code === 'Space') {
+          jump();
+        }
+      });
+
+      gameInterval = setInterval(draw, 1000 / 60);
+    }
+
+    // Simple Breakout Game
+    function startBreakout() {
+      clearInterval(gameInterval);
+      const paddleWidth = 80;
+      const paddleHeight = 10;
+      let paddleX = (canvas.width - paddleWidth) / 2;
+      let ballX = canvas.width / 2;
+      let ballY = canvas.height - 30;
+      let ballDX = 2;
+      let ballDY = -2;
+      const ballRadius = 10;
+      const brickRowCount = 5;
+      const brickColumnCount = 8;
+      const brickWidth = 75;
+      const brickHeight = 20;
+      const brickPadding = 10;
+      const brickOffsetTop = 30;
+      const brickOffsetLeft = 30;
+      const bricks = [];
+
+      // Create the bricks array
+      for (let c = 0; c < brickColumnCount; c++) {
+        bricks[c] = [];
+        for (let r = 0; r < brickRowCount; r++) {
+          bricks[c][r] = { x: 0, y: 0, status: 1 };  // Status 1 means the brick is still visible
+        }
+      }
+
+      // Function to draw the bricks
+      function drawBricks() {
+        for (let c = 0; c < brickColumnCount; c++) {
+          for (let r = 0; r < brickRowCount; r++) {
+            if (bricks[c][r].status === 1) {
+              const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+              const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+              bricks[c][r].x = brickX;
+              bricks[c][r].y = brickY;
+              ctx.fillStyle = '#0095DD';
+              ctx.fillRect(brickX, brickY, brickWidth, brickHeight);
+            }
+          }
+        }
+      }
+
+      // Function to check for collisions with the bricks
+      function collisionDetection() {
+        for (let c = 0; c < brickColumnCount; c++) {
+          for (let r = 0; r < brickRowCount; r++) {
+            const b = bricks[c][r];
+            if (b.status === 1) {
+              if (ballX > b.x && ballX < b.x + brickWidth && ballY > b.y && ballY < b.y + brickHeight) {
+                ballDY = -ballDY; // Reverse ball direction
+                b.status = 0; // Mark brick as destroyed
+              }
+            }
+          }
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBricks();
+        ctx.fillStyle = '#0095DD';
+        ctx.fillRect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        ctx.beginPath();
+        ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+
+        // Ball movement
+        ballX += ballDX;
+        ballY += ballDY;
+
+        // Ball collision with walls
+        if (ballX + ballDX > canvas.width - ballRadius || ballX + ballDX < ballRadius) {
+          ballDX = -ballDX;
+        }
+        if (ballY + ballDY < ballRadius) {
+          ballDY = -ballDY;
+        } else if (ballY + ballDY > canvas.height - ballRadius) {
+          if (ballX > paddleX && ballX < paddleX + paddleWidth) {
+            ballDY = -ballDY;
+          } else {
+            clearInterval(gameInterval);
+            alert('Game Over!');
+          }
+        }
+
+        collisionDetection();
+      }
+
+      document.addEventListener('mousemove', (event) => {
+        const relativeX = event.clientX - canvas.getBoundingClientRect().left;
+        if (relativeX > 0 && relativeX < canvas.width) {
+          paddleX = relativeX - paddleWidth / 2;
+        }
+      });
+
+      gameInterval = setInterval(draw, 1000 / 60);
+    }
+
+    // Simple Tetris Game (Not implemented in this snippet, but you can create it similarly)
+
+    // Simple Pong Game (Not implemented in this snippet, but you can create it similarly)
+
+  </script>
+</body>
+</html>
