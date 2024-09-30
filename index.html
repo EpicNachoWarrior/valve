@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valve's Music</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* General styling */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    h1, h2 {
+      color: #ff4d4d;
+    }
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      background-color: #1c1c1c;
+      border-radius: 10px;
+      text-align: center;
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #ff4d4d;
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #ff3333;
+    }
+    /* Section styles */
+    .section {
+      display: none;
+      margin-top: 20px;
+    }
+    .active {
+      display: block;
+    }
+    canvas {
+      background-color: #000;
+      margin-top: 20px;
+    }
+    #banner {
+      width: 100%;
+      height: 50px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-color: #ff4d4d;
+      color: white;
+      text-align: center;
+      font-size: 20px;
+      line-height: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div id="banner">Edit this text for your banner!</div>
+
+  <div class="container">
+    <h1>Valve's Music</h1>
+    <button onclick="showSection('music')">Music Playlist</button>
+    <button onclick="showSection('games')">Games</button>
+
+    <!-- Music Playlist Section -->
+    <div id="musicSection" class="section active">
+      <h2>Create Your Playlist</h2>
+      <form id="playlistForm">
+        <input type="text" id="videoUrl" placeholder="YouTube Video URL" required />
+        <button type="submit">Add to Playlist</button>
+      </form>
+      <ul id="playlist"></ul>
+    </div>
+
+    <!-- Games Section -->
+    <div id="gameSection" class="section">
+      <h2>Select a Game:</h2>
+      <button onclick="startDino()">Play Dino Jump</button>
+      <button onclick="startFrogger()">Play Frogger</button>
+      <button onclick="startPong()">Play Pong</button>
+      <button onclick="startSnake()">Play Snake</button>
+
+      <!-- Exit Game Button -->
+      <button onclick="exitGame()">Exit Game</button>
+
+      <!-- Canvas for Games -->
+      <canvas id="gameCanvas" width="600" height="400"></canvas>
+    </div>
+  </div>
+
+  <script>
+    let gameInterval;
+
+    // Show the selected section
+    function showSection(section) {
+      document.getElementById('musicSection').style.display = 'none';
+      document.getElementById('gameSection').style.display = 'none';
+      document.getElementById(section + 'Section').style.display = 'block';
+    }
+
+    // Exit Game function
+    function exitGame() {
+      clearInterval(gameInterval);
+      document.getElementById('gameCanvas').style.display = 'none';
+    }
+
+    // Dino Jump Implementation
+    function startDino() {
+      clearInterval(gameInterval);
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.style.display = 'block';
+
+      let dino = { x: 50, y: 300, width: 20, height: 20, dy: 0, jumping: false };
+      let ground = 300;
+      let gravity = 0.5;
+      let obstacles = [];
+      let frame = 0;
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowUp' && !dino.jumping) {
+          dino.jumping = true;
+          dino.dy = -10;
+        }
+      });
+
+      function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        dino.dy += gravity;
+        dino.y += dino.dy;
+
+        if (dino.y > ground) {
+          dino.jumping = false;
+          dino.y = ground;
+          dino.dy = 0;
+        }
+
+        // Draw Dino
+        ctx.fillStyle = 'white';
+        ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+
+        // Generate obstacles
+        if (frame % 100 === 0) {
+          let height = Math.random() * 50 + 10;
+          obstacles.push({ x: canvas.width, y: ground - height, width: 20, height: height });
+        }
+
+        // Move and draw obstacles
+        obstacles = obstacles.map((obs) => ({ ...obs, x: obs.x - 5 }));
+        obstacles.forEach((obs) => {
+          ctx.fillStyle = 'red';
+          ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+        });
+
+        // Remove off-screen obstacles
+        obstacles = obstacles.filter((obs) => obs.x + obs.width > 0);
+
+        // Check collision
+        obstacles.forEach((obs) => {
+          if (
+            dino.x < obs.x + obs.width &&
+            dino.x + dino.width > obs.x &&
+            dino.y < obs.y + obs.height &&
+            dino.y + dino.height > obs.y
+          ) {
+            // Game over logic
+            alert('Game Over!');
+            exitGame();
+          }
+        });
+
+        frame++;
+      }
+
+      gameInterval = setInterval(gameLoop, 1000 / 60);
+    }
+
+    // Snake Implementation
+    function startSnake() {
+      clearInterval(gameInterval);
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.style.display = 'block';
+
+      let snake = [{ x: 50, y: 50 }];
+      let dx = 10;
+      let dy = 0;
+      let food = { x: 100, y: 100 };
+      let score = 0;
+
+      document.addEventListener('keydown', function(e) {
+        switch (e.key) {
+          case 'ArrowUp': if (dy === 0) { dy = -10; dx = 0; } break;
+          case 'ArrowDown': if (dy === 0) { dy = 10; dx = 0; } break;
+          case 'ArrowLeft': if (dx === 0) { dx = -10; dy = 0; } break;
+          case 'ArrowRight': if (dx === 0) { dx = 10; dy = 0; } break;
+        }
+      });
+
+      function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Move snake
+        let head = { x: snake[0].x + dx, y: snake[0].y + dy };
+        snake.unshift(head);
+
+        // Check collision with food
+        if (head.x === food.x && head.y === food.y) {
+          score++;
+          food = { x: Math.floor(Math.random() * 60) * 10, y: Math.floor(Math.random() * 40) * 10 };
+        } else {
+          snake.pop();
+        }
+
+        // Draw snake
+        ctx.fillStyle = 'white';
+        snake.forEach((part) => ctx.fillRect(part.x, part.y, 10, 10));
+
+        // Draw food
+        ctx.fillStyle = 'red';
+        ctx.fillRect(food.x, food.y, 10, 10);
+
+        // Check collision with walls or self
+        if (
+          head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height ||
+          snake.slice(1).some(part => part.x === head.x && part.y === head.y)
+        ) {
+          alert('Game Over!');
+          exitGame();
+        }
+      }
+
+      gameInterval = setInterval(gameLoop, 1000 / 15);
+    }
+
+    // Pong Implementation with AI
+    function startPong() {
+      clearInterval(gameInterval);
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.style.display = 'block';
+
+      let paddleHeight = 75, paddleWidth = 10;
+      let playerY = canvas.height / 2 - paddleHeight / 2;
+      let aiY = canvas.height / 2 - paddleHeight / 2;
+      let ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 7, dx: 3, dy: 3 };
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowUp') playerY = Math.max(0, playerY - 20);
+        if (e.key === 'ArrowDown') playerY = Math.min(canvas.height - paddleHeight, playerY + 20);
+      });
+
+      function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Move AI paddle
+        aiY += (ball.y - (aiY + paddleHeight / 2)) * 0.1;
+
+        // Move ball
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+
+        // Collision with walls
+        if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) ball.dy = -ball.dy;
+
+        // Collision with paddles
+        if (ball.x - ball.radius < paddleWidth && ball.y > playerY && ball.y < playerY + paddleHeight) {
+          ball.dx = -ball.dx;
+        }
+        if (ball.x + ball.radius > canvas.width - paddleWidth && ball.y > aiY && ball.y < aiY + paddleHeight) {
+          ball.dx = -ball.dx;
+        }
+
+        // Reset ball when it goes out of bounds
+        if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+          ball.x = canvas.width / 2;
+          ball.y = canvas.height / 2;
+          ball.dx = -ball.dx;
+        }
+
+        // Draw paddles and ball
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, playerY, paddleWidth, paddleHeight);
+        ctx.fillRect(canvas.width - paddleWidth, aiY, paddleWidth, paddleHeight);
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+      }
+
+      gameInterval = setInterval(gameLoop, 1000 / 60);
+    }
+  </script>
+</body>
+</html>
