@@ -6,84 +6,123 @@
   <title>Valve's Music</title>
   <style>
     body {
-      background-color: #333;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
       margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #1b1b1b;
+      color: white;
     }
 
+    /* Banner at the top */
     #banner {
       background-color: #444;
+      color: white;
       padding: 10px;
+      text-align: center;
       position: fixed;
-      width: 100%;
       top: 0;
+      left: 0;
+      width: 100%;
       z-index: 1000;
     }
 
-    #sections {
+    /* Navigation buttons */
+    #navButtons {
+      display: flex;
+      justify-content: center;
       margin-top: 60px;
     }
 
+    #navButtons button {
+      background-color: #555;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #navButtons button:hover {
+      background-color: #666;
+    }
+
+    /* Sections */
     .section {
       display: none;
     }
 
     .section.active {
       display: block;
+      padding: 20px;
     }
 
+    /* Canvas for games */
     #gameCanvas {
       background-color: black;
-      margin-top: 20px;
+      margin: 20px auto;
+      display: block;
     }
 
+    /* Exit button */
     #exitButton {
-      margin-top: 20px;
+      display: none;
       padding: 10px 20px;
       background-color: red;
       color: white;
       border: none;
       cursor: pointer;
-      display: none;
+      margin-top: 20px;
     }
 
-    #navButtons {
-      margin: 20px 0;
+    /* Game buttons */
+    .game-buttons {
+      margin-top: 20px;
     }
 
-    #navButtons button {
-      padding: 10px;
+    .game-buttons button {
+      background-color: #555;
+      border: none;
+      color: white;
+      padding: 10px 20px;
       margin: 5px;
       cursor: pointer;
+    }
+
+    .game-buttons button:hover {
+      background-color: #666;
     }
   </style>
 </head>
 <body>
+
+  <!-- Banner -->
   <div id="banner">
     <h1>Valve's Music</h1>
   </div>
 
+  <!-- Navigation Buttons -->
   <div id="navButtons">
-    <button onclick="showSection('music')">Music</button>
-    <button onclick="showSection('games')">Games</button>
+    <button onclick="showSection('musicSection')">Music</button>
+    <button onclick="showSection('gameSection')">Games</button>
   </div>
 
+  <!-- Sections -->
   <div id="sections">
+
+    <!-- Music Section -->
     <div id="musicSection" class="section active">
       <h2>Music Section</h2>
-      <!-- Music playlist and controls can go here -->
+      <p>This is where you can add your playlist feature.</p>
     </div>
 
+    <!-- Game Section -->
     <div id="gameSection" class="section">
       <h2>Games Section</h2>
       <canvas id="gameCanvas" width="600" height="400"></canvas>
       <button id="exitButton" onclick="exitGame()">Exit Game</button>
 
-      <!-- Game Selection Buttons -->
-      <div>
+      <!-- Game Buttons -->
+      <div class="game-buttons">
         <button onclick="startDino()">Dino Jump</button>
         <button onclick="startSnake()">Snake</button>
         <button onclick="startPong()">Pong</button>
@@ -95,31 +134,27 @@
   <script>
     let gameInterval;
 
-    // Function to toggle between sections
+    // Function to show the selected section
     function showSection(section) {
       document.getElementById('musicSection').classList.remove('active');
       document.getElementById('gameSection').classList.remove('active');
-
-      if (section === 'music') {
-        document.getElementById('musicSection').classList.add('active');
-      } else if (section === 'games') {
-        document.getElementById('gameSection').classList.add('active');
-      }
-
-      exitGame(); // Stop any running game when switching sections
+      document.getElementById(section).classList.add('active');
+      exitGame(); // Clear game if switching sections
     }
 
-    // Exit game and clear the canvas
+    // Exit game function
     function exitGame() {
       clearInterval(gameInterval);
-      document.getElementById('gameCanvas').style.display = 'none';
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       document.getElementById('exitButton').style.display = 'none';
     }
 
-    // Display the game canvas and exit button
+    // Display game canvas and exit button
     function startGame() {
       document.getElementById('gameCanvas').style.display = 'block';
-      document.getElementById('exitButton').style.display = 'block';
+      document.getElementById('exitButton').style.display = 'inline-block';
     }
 
     // Dino Jump Game
@@ -244,17 +279,14 @@
       const canvas = document.getElementById('gameCanvas');
       const ctx = canvas.getContext('2d');
 
-      const paddleWidth = 10, paddleHeight = 100, ballSize = 10;
+      const paddleWidth = 10, paddleHeight = 60, ballSize = 10;
       let playerPaddle = { x: 10, y: canvas.height / 2 - paddleHeight / 2 };
       let aiPaddle = { x: canvas.width - paddleWidth - 10, y: canvas.height / 2 - paddleHeight / 2 };
-      let ball = { x: canvas.width / 2, y: canvas.height / 2, dx: 5, dy: 5 };
+      let ball = { x: canvas.width / 2, y: canvas.height / 2, dx: 4, dy: 4 };
 
       document.addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowUp' && playerPaddle.y > 0) {
-          playerPaddle.y -= 20;
-        } else if (e.key === 'ArrowDown' && playerPaddle.y < canvas.height - paddleHeight) {
-          playerPaddle.y += 20;
-        }
+        if (e.key === 'ArrowUp') playerPaddle.y -= 20;
+        if (e.key === 'ArrowDown') playerPaddle.y += 20;
       });
 
       function gameLoop() {
@@ -345,5 +377,6 @@
       gameInterval = setInterval(gameLoop, 1000 / 60);
     }
   </script>
+
 </body>
 </html>
